@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Баннер — Математика с нуля</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap&subset=cyrillic" rel="stylesheet">
+<link rel="stylesheet" href="../css/iso.css">
+<style>
+*{box-sizing:border-box}
+html,body{margin:0}
+body{width:1200px;height:630px;overflow:hidden;background:var(--anatomy-page);color:var(--anatomy-text);font-family:Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.iso{--anatomy-mono:"JetBrains Mono",ui-monospace,monospace}
+.card{position:absolute;inset:28px;border:1px solid var(--anatomy-mid);background:var(--anatomy-card);display:grid;grid-template-columns:560px 1fr}
+.grid{position:absolute;inset:0;background-image:linear-gradient(var(--anatomy-faint) 1px,transparent 1px),linear-gradient(90deg,var(--anatomy-faint) 1px,transparent 1px);background-size:28px 28px;opacity:.35;-webkit-mask-image:radial-gradient(ellipse at 72% 50%,#000 0,transparent 70%);mask-image:radial-gradient(ellipse at 72% 50%,#000 0,transparent 70%)}
+.corner{position:absolute;font-family:var(--anatomy-mono);font-size:13px;letter-spacing:.06em;color:var(--anatomy-muted);z-index:2}
+.tl{top:22px;left:26px;color:var(--anatomy-text)}
+.tr{top:22px;right:26px;text-transform:uppercase;letter-spacing:.14em}
+.bl{bottom:22px;left:26px;text-transform:uppercase;letter-spacing:.14em}
+.br{bottom:22px;right:26px;color:var(--anatomy-text)}
+.text{position:relative;z-index:2;padding:96px 0 0 52px}
+.kicker{font-family:var(--anatomy-mono);font-size:14px;letter-spacing:.16em;text-transform:uppercase;color:var(--anatomy-muted);margin:0 0 22px}
+h1{margin:0 0 26px;color:var(--anatomy-strong);font-size:76px;line-height:.98;letter-spacing:-.04em;font-weight:600}
+.lead{margin:0 0 34px;font-size:21px;line-height:1.45;max-width:440px}
+.ops{display:flex;gap:10px}
+.ops span{font-family:var(--anatomy-mono);font-size:17px;color:var(--anatomy-strong);padding:9px 14px;border:1px solid var(--anatomy-lo);border-radius:9px;background:var(--anatomy-page)}
+.fig{position:relative;z-index:1}
+.fig .iso-stage{position:absolute;inset:-6px 0 0 0}
+</style>
+</head>
+<body class="iso" data-theme="dark">
+<div class="card">
+  <div class="grid"></div>
+  <span class="corner tl">Fig 0</span>
+  <span class="corner tr">Лестница чисел</span>
+  <span class="corner bl">Интерактивный курс · 3D</span>
+  <span class="corner br">1 + 2 + … + 9 = 45</span>
+  <div class="text">
+    <p class="kicker">8 уроков · от счёта до деления</p>
+    <h1>Математика<br>с нуля</h1>
+    <p class="lead">Счёт, ноль, сравнение, разряды и четыре действия — на живых 3D-машинах.</p>
+    <div class="ops"><span>+</span><span>−</span><span>×</span><span>:</span><span>&lt; = &gt;</span></div>
+  </div>
+  <div class="fig"><div class="iso-stage" data-scene="hero"></div></div>
+</div>
+<script src="../js/iso-kit.js"></script>
+<script src="../js/engine.js"></script>
+<script src="../js/lessons.js"></script>
+<script>
+  const params = new URLSearchParams(location.search);
+  document.body.dataset.theme = params.get("theme") || "dark";
+  const s = LESSONS.build.hero(document.querySelector("[data-scene=hero]"));
+  s.az.jump(+(params.get("az") || 200)); s.wake();
+</script>
+</body>
+</html>
