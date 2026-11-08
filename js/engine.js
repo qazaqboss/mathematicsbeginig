@@ -210,10 +210,11 @@
       this.g.innerHTML = c.finish();
       if (this.opt.readout && this.readoutEl) {
         const t = this.opt.readout(this);
-        if (this.readoutEl.textContent !== t) this.readoutEl.textContent = t;
+        if (this.readoutEl.textContent !== t) { this.readoutEl.textContent = t; if (this.touched) this.figure.dispatchEvent(new CustomEvent("readout", { detail: t, bubbles: true })); }
       }
     }
     tick(now) {
+      if (this.dead) return;
       const dt = this.last ? Math.min((now - this.last) / 1000, 1 / 30) : 1 / 60;
       this.last = now;
       let moving = false;
@@ -228,7 +229,9 @@
       this.dirty = false;
       this.frame = keep ? requestAnimationFrame((t) => this.tick(t)) : 0;
     }
+    destroy() { this.dead = true; if (this.frame) cancelAnimationFrame(this.frame); this.frame = 0; if (this.io) this.io.disconnect(); }
     wake() {
+      if (this.dead) return;
       this.dirty = true;
       if (!this.frame && this.visible) { this.last = 0; this.frame = requestAnimationFrame((t) => this.tick(t)); }
     }
@@ -236,7 +239,8 @@
     spinBy(deg) { this.az.set(this.az.t + deg); this.touch(); }
     resetView() { this.az.set(this.opt.az + Math.round((this.az.t - this.opt.az) / 360) * 360); this.el.set(this.opt.el); this.wake(); }
     bind() {
-      new IntersectionObserver((es) => { this.visible = es[es.length - 1].isIntersecting; if (this.visible) this.wake(); }, { rootMargin: "100px 0px" }).observe(this.root);
+      this.io = new IntersectionObserver((es) => { this.visible = es[es.length - 1].isIntersecting; if (this.visible) this.wake(); }, { rootMargin: "100px 0px" });
+      this.io.observe(this.root);
       const r = this.root;
       r.addEventListener("pointerdown", (e) => {
         if (e.button !== 0) return;

@@ -385,7 +385,7 @@
   }
 
   /* ---------- Fig 5: spike abacus — ones, tens, hundreds, with carrying ---------- */
-  function abacus(root) {
+  function abacus(root, opts = {}) {
     const RODS = [-62, 0, 62], BH = 8.2, BASE_Z = 18, ROD_TOP = BASE_Z + 10 * BH + 14, NAMES = ["СОТНИ", "ДЕСЯТКИ", "ЕДИНИЦЫ"];
     const rods = [[], [], []];
     const queue = [];
@@ -414,8 +414,11 @@
       later(0.4, () => { for (let i = 0; i < 10; i++) later(i * 0.05, () => drop(r)); later(0.9, () => { lift(r, 1); busy--; }); });
       stage.wake();
     };
+    const pending = [];
+    let lastAdd = 0, eqText = "";
+    const plus = (n) => { const ds = [Math.floor(n / 100), Math.floor(n / 10) % 10, n % 10]; for (const r of [2, 1, 0]) for (let i = 0; i < ds[r]; i++) pending.push(r); stage.wake(); };
     const setTo = (v) => {
-      v = clamp(v, 0, 999); queue.length = 0; busy = 0;
+      v = clamp(v, 0, 999); queue.length = 0; busy = 0; pending.length = 0;
       const ds = [Math.floor(v / 100), Math.floor(v / 10) % 10, v % 10];
       ds.forEach((d, r) => { const l = live(r); if (l.length > d) lift(r, l.length - d); for (let i = l.length; i < d; i++) later(i * 0.05 + r * 0.12, () => drop(r)); });
       stage.wake();
@@ -425,11 +428,14 @@
       label: "Счёты с тремя стержнями: сотни, десятки, единицы. Десять бусин меняются на одну на соседнем стержне.",
       readout: () => {
         const [h, t, u] = [0, 1, 2].map((r) => live(r).length);
-        return `${h * 100 + t * 10 + u} = ${h} сот. + ${t} дес. + ${u} ед.`;
+        const val = h * 100 + t * 10 + u;
+        if (eqText) return `${eqText} → ${val}${pending.length || busy ? "…" : ""}`;
+        return `${val} = ${h} сот. + ${t} дес. + ${u} ед.`;
       },
       update(dt) {
         clock += dt;
-        let m = queue.length > 0;
+        let m = queue.length > 0 || pending.length > 0;
+        if (pending.length && busy === 0 && !queue.length && clock - lastAdd > (still.matches ? 0 : 0.2)) { lastAdd = clock; add(pending.shift()); }
         for (let i = 0; i < queue.length; i++) if (queue[i].at <= clock) { const job = queue.splice(i, 1)[0]; i--; job.fn(); }
         for (const r of rods) {
           for (const q of r) { m = q.z.step(dt) || m; m = q.o.step(dt) || m; }
@@ -483,8 +489,13 @@
         });
       },
     });
-    scenes.abacus = { stage, act: { a1: () => add(2), a10: () => add(1), a100: () => add(0), s1: () => sub(2), reset: () => setTo(0), rand: () => setTo(10 + Math.floor(Math.random() * 980)), nine: () => setTo(99) } };
-    setTo(47);
+    const colA = opts.a || 275, colB = opts.b || 148;
+    let pairA = colA, pairB = colB;
+    scenes.abacus = { stage, act: {
+      setA: () => { eqText = ""; setTo(pairA); },
+      plus: () => { setTo(pairA); eqText = `${pairA} + ${pairB}`; queue.push({ at: clock + 1.2, fn: () => plus(pairB) }); },
+      newPair: () => { pairA = 100 + Math.floor(Math.random() * 500); pairB = 10 + Math.floor(Math.random() * Math.min(399, 999 - pairA - 10)); eqText = ""; setTo(pairA); }, a1: () => { eqText = ""; add(2); }, a10: () => { eqText = ""; add(1); }, a100: () => { eqText = ""; add(0); }, s1: () => { eqText = ""; sub(2); }, reset: () => { eqText = ""; setTo(0); }, rand: () => setTo(10 + Math.floor(Math.random() * 980)), nine: () => setTo(99) } };
+    setTo(opts.a || 47);
     return stage;
   }
 
